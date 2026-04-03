@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEWECS Operator Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a2e; /* Deep purple background for high contrast */
+            color: #e5e7eb;
+        }
+        .card {
+            background-color: #2c2c4b;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            border-radius: 0.75rem;
+        }
+        .indicator-critical {
+            animation: pulse-critical 1s infinite alternate;
+        }
+        .indicator-draft {
+            animation: pulse-draft 1.5s infinite alternate;
+        }
+        @keyframes pulse-critical {
+            from { background-color: #ef4444; box-shadow: 0 0 10px #ef4444; }
+            to { background-color: #b91c1c; box-shadow: 0 0 20px #b91c1c; }
+        }
+        @keyframes pulse-draft {
+            from { background-color: #fbbf24; box-shadow: 0 0 8px #fbbf24; }
+            to { background-color: #d97706; box-shadow: 0 0 16px #d97706; }
+        }
+        /* Custom scrollbar for log history */
+        #system-log::-webkit-scrollbar {
+            width: 8px;
+        }
+        #system-log::-webkit-scrollbar-thumb {
+            background-color: #4b5563;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl sm:text-4xl font-extrabold text-center mb-6 text-red-400">
+            DEWECS: Operator Command Console
+        </h1>
+
+        <!-- Main Grid Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- COLUMN 1: Real-time Monitoring & Alert Generation (DFD 2.0 & 3.0) -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Sensor Status & Analysis (DFD 1.0 & 2.0) -->
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold mb-4 border-b border-gray-600 pb-2 text-blue-300">
+                        Data Analysis & Sensor Health (DFD 1.0 / 2.0)
+                    </h2>
+                    
+                    <!-- Sensor Health Status -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="p-3 bg-gray-700 rounded-lg text-center">
+                            <p class="text-sm text-gray-400">Seismic Data Feed</p>
+                            <p id="seismic-feed-status" class="text-xl font-bold text-green-400">ACTIVE</p>
+                        </div>
+                        <div class="p-3 bg-gray-700 rounded-lg text-center">
+                            <p class="text-sm text-gray-400">Model Latency (ms)</p>
+                            <p id="model-latency" class="text-xl font-bold text-green-400">45</p>
+                        </div>
+                        <div class="p-3 bg-gray-700 rounded-lg text-center">
+                            <p class="text-sm text-gray-400">Raw Data Stream</p>
+                            <p id="stream-status" class="text-xl font-bold text-green-400">BUFFERING</p>
+                        </div>
+                        <div class="p-3 bg-gray-700 rounded-lg text-center">
+                            <p class="text-sm text-gray-400">Historical Log Status</p>
+                            <p id="log-status" class="text-xl font-bold text-green-400">SYNCED</p>
+                        </div>
+                    </div>
+
+                    <!-- Sensor Readings for Prediction -->
+                    <h3 class="text-lg font-bold mb-3 mt-6 border-b border-gray-600 pb-2 text-orange-300">
+                        Real-Time Environmental Readings
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="p-3 bg-gray-700 rounded-lg text-center">
+                            <p class="text-sm text-gray-400">Seismic Activity (Mw)</p>
+                            <p id="seismic-reading" class="text-3xl font-bold text-green-400 transition-colors duration-500">0.0</p>
+                        </div>
+                        <div class="p-3 bg-gray-700 rounded-lg text-center">
+                            <p class="text-sm text-gray-400">Hydrological Flow (m³/s)</p>
+                            <p id="hydro-reading" class="text-3xl font-bold text-yellow-400">12.5</p>
+                        </div>
+                        <div class="p-3 bg-gray-700 rounded-lg text-center">
+                            <p class="text-sm text-gray-400">Wind Speed (km/h)</p>
+                            <p id="wind-reading" class="text-3xl font-bold text-cyan-400">35.0</p>
+                        </div>
+                        <div class="p-3 bg-gray-700 rounded-lg text-center">
+                            <p class="text-sm text-gray-400">Dissemination Window (Sec)</p>
+                            <p id="alert-timer" class="text-3xl font-bold text-pink-400">---</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Alert Console (DFD 3.0) -->
+                <div class="card p-6">
+                    <h3 class="text-xl font-bold mb-3 border-b border-gray-600 pb-2 text-red-300">
+                        Alert Generation & Dissemination (DFD 3.0)
+                    </h3>
+                    
+                    <div id="alert-console" class="p-4 rounded-lg">
+                        <div id="current-alert-status" class="text-center font-semibold text-gray-400">System Nominal. Awaiting Sensor Input...</div>
+                        
+                        <div id="alert-actions" class="mt-4 hidden flex flex-col space-y-3">
+                            <p class="text-sm text-center text-gray-400 indicator-draft p-2 rounded-lg">DRAFT ALERT GENERATED (Prediction Result): Requires Operator Review.</p>
+                            
+                            <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                                <button onclick="approveAndDisseminate()" id="disseminate-btn" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg shadow-md transition duration-200" disabled>
+                                    APPROVE & DISSEMINATE ALERT INFO
+                                </button>
+                                <button onclick="rejectAlert()" class="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 rounded-lg shadow-md transition duration-200">
+                                    REJECT DRAFT
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div id="dissemination-status" class="mt-4 hidden p-3 bg-green-700 text-white font-bold rounded-lg text-center indicator-critical">
+                            ALERT DISSEMINATED! (SOS Citizens, Alerting Info to Govt. Agencies)
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Emergency Communication & Reporting (DFD 4.0) -->
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold mb-4 border-b border-gray-600 pb-2 text-cyan-300">
+                        Emergency Communication & Reporting (DFD 4.0)
+                    </h2>
+                    <div id="field-reports" class="h-40 overflow-y-auto p-3 bg-gray-800 rounded-lg text-xs space-y-2">
+                        <!-- Field reports appended here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMN 2: System Stats & Responder Status -->
+            <div class="lg:col-span-1 space-y-6">
+                
+                <!-- Responder Status -->
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold mb-4 border-b border-gray-600 pb-2 text-lime-300">
+                        Responder Status Tracking (DFD 4.0)
+                    </h2>
+                    <table class="min-w-full text-sm">
+                        <thead>
+                            <tr class="text-left border-b border-gray-600">
+                                <th class="py-2">Team ID</th>
+                                <th class="py-2">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="responder-status-body">
+                            <!-- Rows populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Log History -->
+                <div class="card p-6">
+                    <h3 class="text-lg font-bold mb-3 border-b border-gray-600 pb-2 text-gray-400">
+                        System Log (DFD 2.0/3.0 Data)
+                    </h3>
+                    <div id="system-log" class="h-40 overflow-y-auto p-3 bg-gray-800 rounded-lg text-xs space-y-1">
+                        <!-- Log entries will be appended here -->
+                    </div>
+                </div>
+
+                <!-- System Integrity -->
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold mb-4 border-b border-gray-600 pb-2 text-purple-300">
+                        System Integrity / Network Health
+                    </h2>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Availability Target:</span>
+                            <span class="font-bold text-green-400">99.999%</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Network Interface (NIC):</span>
+                            <span class="font-bold text-green-400">Gigabit Ethernet Active</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Backup Route:</span>
+                            <span class="font-bold text-yellow-400">Static Route Configured</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Data Security (TLS):</span>
+                            <span class="font-bold text-green-400">TLS 1.3 Active</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Global state variables
+        const THREAT_THRESHOLD = 5.5; // Magnitude threshold for generating a draft alert
+        let isThreatActive = false;
+        let alertDraftGenerated = false;
+        let timeToDisseminate = null;
+        let timerInterval = null;
+
+        // --- DOM Elements ---
+        const seismicReadingEl = document.getElementById('seismic-reading');
+        const alertStatusEl = document.getElementById('current-alert-status');
+        const alertActions = document.getElementById('alert-actions');
+        const disseminateBtn = document.getElementById('disseminate-btn');
+        const disseminationStatus = document.getElementById('dissemination-status');
+        const systemLog = document.getElementById('system-log');
+        const alertTimerEl = document.getElementById('alert-timer');
+        const responderBody = document.getElementById('responder-status-body');
+        const fieldReportsEl = document.getElementById('field-reports');
+        const streamStatusEl = document.getElementById('stream-status');
+
+        // --- Data Mocking ---
+        const responders = [
+            { id: 'T001', status: 'Safe', color: 'bg-green-600' },
+            { id: 'T002', status: 'Engaged', color: 'bg-yellow-600' },
+            { id: 'T003', status: 'Needs Help', color: 'bg-red-600' },
+            { id: 'T004', status: 'Safe', color: 'bg-green-600' },
+        ];
+        
+        const mockReports = [
+            { team: 'T002', time: '09:55:00', location: 'Sector A1', report: 'Road damage minor, access clear.', type: 'UPDATE' },
+            { team: 'T003', time: '10:01:30', location: 'City Center', report: 'Critical structural damage spotted at 123 Main St.', type: 'SOS' },
+        ];
+        
+        let reportIndex = 0;
+
+        // --- Utility Functions ---
+
+        /** Logs an event to the system log panel. */
+        function log(message, type = 'INFO') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('p');
+            logEntry.className = 'text-gray-300';
+            logEntry.innerHTML = `<span class="text-gray-500">[${timestamp}]</span> <span class="font-bold text-${type === 'CRITICAL' ? 'red' : type === 'WARN' ? 'yellow' : 'gray'}-400">${type}</span>: ${message}`;
+            
+            systemLog.appendChild(logEntry);
+            systemLog.scrollTop = systemLog.scrollHeight; // Scroll to bottom
+        }
+        
+        /** Simulates field reports coming in (DFD 4.0). */
+        function simulateFieldReports() {
+            if (reportIndex < mockReports.length) {
+                const report = mockReports[reportIndex];
+                const reportEl = document.createElement('p');
+                let color = report.type === 'SOS' ? 'text-red-500 font-bold' : 'text-cyan-400';
+                
+                reportEl.innerHTML = `<span class="text-gray-500">[${report.time}]</span> <span class="${color}">${report.team} (${report.location})</span>: ${report.report}`;
+                fieldReportsEl.appendChild(reportEl);
+                fieldReportsEl.scrollTop = fieldReportsEl.scrollHeight;
+
+                log(`New field report received from ${report.team}.`, report.type === 'SOS' ? 'ALERT' : 'INFO');
+                
+                // Update responder status based on the report
+                const responder = responders.find(r => r.id === report.team);
+                if (responder) {
+                    if (report.type === 'SOS') {
+                        responder.status = 'Needs Help';
+                    } else if (responder.status === 'Safe') {
+                        responder.status = 'Engaged';
+                    }
+                    updateResponderStatus();
+                }
+                
+                reportIndex++;
+            }
+        }
+
+
+        /** Updates the sensor reading and checks for threat threshold (DFD 2.0). */
+        function updateSensors() {
+            // Simulate stream buffering for DFD 1.0 status
+            if (Math.random() < 0.05) {
+                streamStatusEl.textContent = 'LAGGING';
+                streamStatusEl.classList.remove('text-green-400');
+                streamStatusEl.classList.add('text-yellow-400');
+            } else {
+                streamStatusEl.textContent = 'BUFFERING';
+                streamStatusEl.classList.remove('text-yellow-400');
+                streamStatusEl.classList.add('text-green-400');
+            }
+
+
+            // Simulate seismic reading that randomly breaches the threshold
+            let newReading;
+            if (isThreatActive) {
+                // Keep reading high while active
+                newReading = (Math.random() * (7.0 - 5.0) + 5.0).toFixed(1);
+            } else {
+                // Normal random fluctuations
+                newReading = (Math.random() * 4.0).toFixed(1);
+            }
+
+            seismicReadingEl.textContent = newReading;
+            
+            // Critical color transition for visual feedback
+            const readingValue = parseFloat(newReading);
+            if (readingValue >= THREAT_THRESHOLD) {
+                seismicReadingEl.className = 'text-3xl font-bold text-red-500 transition-colors duration-500 indicator-critical';
+                if (!alertDraftGenerated) {
+                    generateDraftAlert(readingValue);
+                }
+            } else if (readingValue >= THREAT_THRESHOLD - 1.0) {
+                 seismicReadingEl.className = 'text-3xl font-bold text-yellow-500 transition-colors duration-500';
+                 isThreatActive = false; // Reset threat flag if it drops below threshold
+            } else {
+                seismicReadingEl.className = 'text-3xl font-bold text-green-400 transition-colors duration-500';
+                isThreatActive = false; // Reset threat flag
+                if (!alertDraftGenerated && disseminationStatus.classList.contains('hidden')) {
+                     alertStatusEl.textContent = 'System Nominal. Awaiting Sensor Input...';
+                }
+            }
+
+            // Simulate minor fluctuations for other readings
+            document.getElementById('hydro-reading').textContent = (Math.random() * (15 - 10) + 10).toFixed(1);
+            document.getElementById('wind-reading').textContent = (Math.random() * (40 - 20) + 20).toFixed(1);
+        }
+
+        /** Generates a draft alert (DFD 3.0: Prediction Result). */
+        function generateDraftAlert(magnitude) {
+            alertDraftGenerated = true;
+            isThreatActive = true;
+            
+            log(`Seismic Magnitude ${magnitude} detected. Threshold breached!`, 'CRITICAL');
+            log('Draft Alert (Immediate Warning) generated from Prediction Result.', 'WARN');
+
+            alertStatusEl.textContent = `CRITICAL THREAT: Mw ${magnitude}. Awaiting Operator Approval.`;
+            alertStatusEl.className = 'text-center font-bold text-red-500 text-lg';
+            
+            alertActions.classList.remove('hidden');
+            disseminateBtn.disabled = false;
+            
+            // Start 5-second dissemination timer 
+            timeToDisseminate = Date.now();
+            timerInterval = setInterval(updateTimer, 100);
+        }
+
+        /** Updates the dissemination timer. */
+        function updateTimer() {
+            if (!timeToDisseminate) return;
+            const elapsed = Date.now() - timeToDisseminate;
+            const remaining = Math.max(0, 5000 - elapsed);
+            const remainingSeconds = (remaining / 1000).toFixed(1);
+            
+            alertTimerEl.textContent = remainingSeconds;
+            
+            if (remaining <= 0) {
+                clearInterval(timerInterval);
+                alertTimerEl.textContent = '0.0';
+                log('WARNING: 5-second dissemination window expired without approval.', 'CRITICAL');
+                disseminateBtn.disabled = true; // Disable if time runs out
+            }
+        }
+
+        /** Operator approves and disseminates the alert (DFD 3.0). */
+        function approveAndDisseminate() {
+            if (!alertDraftGenerated || disseminateBtn.disabled) return;
+
+            clearInterval(timerInterval);
+            const disseminationTime = (Date.now() - timeToDisseminate) / 1000;
+            
+            alertActions.classList.add('hidden');
+            alertStatusEl.textContent = `Immediate Warning Disseminated to all channels.`;
+            alertStatusEl.className = 'text-center font-bold text-green-400 text-lg';
+            
+            disseminationStatus.classList.remove('hidden');
+            disseminationStatus.innerHTML = `ALERT DISSEMINATED! (Time: ${disseminationTime.toFixed(2)}s)`;
+
+            log(`ALERT DISSEMINATED in ${disseminationTime.toFixed(2)}s.`, 'CRITICAL');
+            log('Sent SOS Citizens & Alerting Info to Govt Agencies.', 'INFO');
+            
+            // Reset for next alert after a delay
+            setTimeout(resetSystem, 10000);
+        }
+
+        /** Operator rejects the draft alert. */
+        function rejectAlert() {
+            clearInterval(timerInterval);
+            log('Draft Alert rejected by Operator.', 'WARN');
+            resetSystem();
+        }
+
+        /** Resets the UI and state after an event. */
+        function resetSystem() {
+            alertDraftGenerated = false;
+            isThreatActive = false;
+            timeToDisseminate = null;
+            
+            alertActions.classList.add('hidden');
+            disseminationStatus.classList.add('hidden');
+            alertStatusEl.textContent = 'System Nominal. Awaiting Sensor Input...';
+            alertStatusEl.className = 'text-center font-semibold text-gray-400';
+            disseminateBtn.disabled = true;
+            alertTimerEl.textContent = '---';
+        }
+
+        /** Populates the Responder Status table (DFD 4.0). */
+        function updateResponderStatus() {
+            responderBody.innerHTML = '';
+            responders.forEach(r => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-700';
+                
+                let statusClass = 'text-gray-400';
+                if (r.status === 'Safe') statusClass = 'text-green-400';
+                else if (r.status === 'Engaged') statusClass = 'text-yellow-400';
+                else if (r.status === 'Needs Help') statusClass = 'text-red-400 indicator-critical';
+
+                row.innerHTML = `
+                    <td class="py-2 font-semibold">${r.id}</td>
+                    <td class="py-2">
+                        <span class="font-bold ${statusClass}">${r.status}</span>
+                    </td>
+                `;
+                responderBody.appendChild(row);
+            });
+        }
+        
+        // --- Initialization ---
+        window.onload = function() {
+            log('DEWECS System Initialized. Checking Network Integrity...');
+            log('Data Collection Feed (DFD 1.0) Active.', 'INFO');
+            log('Prediction Model (DFD 2.0) initialized. Latency: 45ms.', 'INFO');
+            
+            updateResponderStatus();
+            
+            // Set up recurring sensor updates and report simulation
+            setInterval(updateSensors, 500); 
+            setTimeout(() => {
+                setInterval(simulateFieldReports, 8000); // Simulate reports coming in every 8 seconds
+            }, 5000); 
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">Upload Match PDF</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="file" class="form-label">Select Scorecard (PDF)</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".pdf" required>
+                        <div class="form-text">Ensure the PDF is in the standard format.</div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100">Upload & Process</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

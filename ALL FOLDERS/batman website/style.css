@@ -1,0 +1,381 @@
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: linear-gradient(180deg, #181c24 60%, #23272f 100%);
+    color: #f5f5f5;
+    font-family: 'Russo One', 'Segoe UI', Arial, sans-serif;
+    position: relative;
+    overflow-x: hidden;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: url('Background.jpg') center/cover no-repeat;
+    opacity: 0.18;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.container {
+    max-width: 900px;
+    margin: 40px auto;
+    background: rgba(30, 34, 44, 0.75);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px 0 rgba(0,0,0,0.55);
+    overflow: hidden;
+    backdrop-filter: blur(8px) saturate(1.2);
+    border: 1.5px solid rgba(255,255,255,0.08);
+    position: relative;
+    z-index: 1;
+}
+
+header {
+    text-align: center;
+    padding: 48px 20px 24px 20px;
+    background: #0a0a0c;
+    box-shadow: 0 0 80px 0 #ff2a2a33, 0 0 0 0 #000;
+    position: relative;
+}
+
+.logo {
+    width: 180px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 0 12px #000a);
+    transition: transform 0.4s cubic-bezier(.4,2,.6,1), filter 0.4s;
+    position: relative;
+    z-index: 2;
+    animation: batman-logo-smooth-in 1.1s cubic-bezier(.4,1.2,.6,1) 0.1s both;
+}
+
+.logo::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 260px;
+    height: 120px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(ellipse at center, #ff2a2a55 0%, #0a0a0c 80%);
+    filter: blur(18px);
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.85;
+    border-radius: 50%;
+}
+
+@keyframes batman-logo-smooth-in {
+    0% {
+        opacity: 0;
+        transform: scale(2.5) translateY(60px);
+        letter-spacing: 1.5em;
+        filter: blur(12px) brightness(1.5);
+    }
+    60% {
+        opacity: 1;
+        transform: scale(1.08) translateY(-8px);
+        letter-spacing: 0.4em;
+        filter: blur(1px) brightness(1.1);
+    }
+    80% {
+        transform: scale(0.98) translateY(2px);
+        letter-spacing: 0.3em;
+        filter: blur(0.2px) brightness(1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+        letter-spacing: 0.25em;
+        filter: none;
+    }
+}
+
+/* Stylized and animated BATMAN word */
+h1 {
+    font-size: 3.4rem;
+    letter-spacing: 10px;
+    margin: 0 0 10px 0;
+    font-family: 'Russo One', 'Impact', 'Segoe UI', Arial, sans-serif;
+    color: #ffd700;
+    text-shadow: 0 2px 16px #000a, 0 0px 32px #ffd70033, 0 8px 32px #000c;
+    letter-spacing: 0.25em;
+    transition: color 0.3s, text-shadow 0.3s;
+    position: relative;
+    z-index: 2;
+    transform: scale(1);
+    animation: batman-logo-smooth-in 1.1s cubic-bezier(.4,1.2,.6,1) 0.1s both;
+    opacity: 1;
+    overflow: hidden;
+}
+/* Batmobile Section */
+.batmobile-section {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+    padding: 48px 20px 56px 20px;
+    background: linear-gradient(120deg, #191b1f 60%, #23272f 100%);
+    border-radius: 24px;
+    margin: 40px 0 0 0;
+    box-shadow: 0 8px 48px 0 #000c, 0 0 0 8px #23272f99;
+    position: relative;
+    z-index: 1;
+    opacity: 0;
+    transform: translateY(60px) scale(0.98);
+    animation: batmobile-in 1.3s cubic-bezier(.16,1.1,.36,1) 1.1s both;
+}
+
+.batmobile-img {
+    width: 340px;
+    max-width: 90vw;
+    border-radius: 18px;
+    box-shadow: 0 8px 48px 0 #000c, 0 0 0 8px #23272f99;
+    background: #222;
+    transition: transform 0.5s cubic-bezier(.4,2,.6,1), box-shadow 0.5s;
+    filter: grayscale(10%) brightness(1.1) contrast(1.1);
+    will-change: transform, box-shadow;
+}
+.batmobile-img:hover {
+    transform: scale(1.04) rotate(1deg);
+    box-shadow: 0 16px 64px 0 #ffd70044, 0 0 0 12px #23272fcc;
+    filter: grayscale(0%) brightness(1.2) contrast(1.2);
+}
+
+.batmobile-details {
+    max-width: 420px;
+    background: rgba(24, 28, 36, 0.7);
+    border-radius: 16px;
+    padding: 28px 32px;
+    box-shadow: 0 2px 16px #0006;
+    border: 1px solid rgba(255,255,255,0.06);
+    backdrop-filter: blur(2px);
+    color: #e0e0e0;
+    font-size: 1.13rem;
+    line-height: 1.7;
+    transition: background 0.3s;
+    position: relative;
+    z-index: 2;
+}
+.batmobile-details h2 {
+    color: #ffd700;
+    font-size: 2rem;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 12px #ffd70033, 0 1px 8px #000a;
+}
+.batmobile-details ul {
+    margin: 12px 0 0 18px;
+    padding: 0;
+    color: #ffd700;
+    font-size: 1.05rem;
+    list-style: disc inside;
+}
+.batmobile-details li {
+    margin-bottom: 6px;
+    color: #e0e0e0;
+}
+
+@keyframes batmobile-in {
+    0% {
+        opacity: 0;
+        transform: translateY(60px) scale(0.98);
+        filter: blur(8px);
+    }
+    60% {
+        opacity: 1;
+        transform: translateY(-8px) scale(1.04);
+        filter: blur(0.5px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: none;
+    }
+}
+
+/* Shine sweep effect */
+h1::after {
+    content: '';
+    position: absolute;
+    left: -60%;
+    top: 0;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(120deg, transparent 60%, #fff8 80%, transparent 100%);
+    transform: skewX(-24deg);
+    pointer-events: none;
+    animation: batman-shine 2.2s cubic-bezier(.16,1.1,.36,1) 0.7s 1 both;
+    z-index: 3;
+}
+
+@keyframes batman-shine {
+    0% {
+        left: -60%;
+        opacity: 0;
+    }
+    60% {
+        opacity: 0.7;
+    }
+    80% {
+        left: 110%;
+        opacity: 0.2;
+    }
+    100% {
+        left: 120%;
+        opacity: 0;
+    }
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    color: #e0e0e0;
+    letter-spacing: 2px;
+    margin-bottom: 0;
+    text-shadow: 0 1px 8px #000a;
+}
+
+.hero-section {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 20px 56px 20px;
+    gap: 48px;
+    background: linear-gradient(120deg, #23272f 60%, #181c24 100%);
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 4px 32px 0 #000a;
+    position: relative;
+    z-index: 1;
+}
+
+.batman-hero {
+    width: 340px;
+    max-width: 90vw;
+    border-radius: 18px;
+    box-shadow: 0 8px 48px 0 #000c, 0 0 0 8px #23272f99;
+    background: #222;
+    transition: transform 0.4s cubic-bezier(.4,2,.6,1), box-shadow 0.4s;
+    filter: grayscale(10%) brightness(1.1) contrast(1.1);
+}
+.batman-hero:hover {
+    transform: scale(1.04) rotate(-1deg);
+    box-shadow: 0 16px 64px 0 #ffd70044, 0 0 0 12px #23272fcc;
+    filter: grayscale(0%) brightness(1.2) contrast(1.2);
+}
+
+.hero-text {
+    max-width: 420px;
+    background: rgba(24, 28, 36, 0.7);
+    border-radius: 16px;
+    padding: 28px 32px;
+    box-shadow: 0 2px 16px #0006;
+    border: 1px solid rgba(255,255,255,0.06);
+    backdrop-filter: blur(2px);
+    transition: background 0.3s;
+}
+
+.hero-text h2 {
+    font-size: 2.2rem;
+    margin-bottom: 12px;
+    color: #ffd700;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 12px #ffd70033, 0 1px 8px #000a;
+}
+
+.hero-text p {
+    font-size: 1.15rem;
+    line-height: 1.7;
+    color: #e0e0e0;
+    text-shadow: 0 1px 6px #000a;
+}
+
+footer {
+    text-align: center;
+    padding: 18px 0;
+    background: #15171c;
+    color: #888;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    border-top: 1px solid #23272f;
+    box-shadow: 0 -2px 16px #000a;
+}
+
+/* Subtle fade-in animation for the whole site */
+html {
+    animation: fadein 1.2s cubic-bezier(.4,2,.6,1);
+}
+@keyframes fadein {
+    from { opacity: 0; transform: translateY(32px); }
+    to { opacity: 1; transform: none; }
+}
+
+/* Flexbox styles for image and text alignment */
+.flex-row {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+}
+
+.hero-img-wrapper,
+.batmobile-img-wrapper {
+    flex: 0 0 auto;
+    max-width: 300px;
+}
+
+.hero-img-wrapper img,
+.batmobile-img-wrapper img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 10px;
+}
+
+.hero-text,
+.batmobile-details {
+    flex: 1 1 0;
+}
+
+@media (max-width: 800px) {
+    .flex-row {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .hero-img-wrapper,
+    .batmobile-img-wrapper {
+        max-width: 100%;
+    }
+}
+
+.hero-img-wrapper,
+.batmobile-img-wrapper {
+    flex: 0 0 auto;
+    max-width: 300px;
+}
+
+.hero-img-wrapper img,
+.batmobile-img-wrapper img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 10px;
+}
+
+.hero-text,
+.batmobile-details {
+    flex: 1 1 0;
+}
+
+@media (max-width: 800px) {
+    .flex-row {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .hero-img-wrapper,
+    .batmobile-img-wrapper {
+        max-width: 100%;
+    }
+}

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEWECS Operator Command Console</title>
+    <!-- Links the external Tailwind CSS framework -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Reference to external CSS file (styles.css) -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-gray-900 text-white min-h-screen p-4">
+    <div id="app" class="max-w-7xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-extrabold text-indigo-400">DEWECS: Operator Command Console</h1>
+            <p class="text-indigo-300 mt-1">Disaster Early Warning and Emergency Communication System</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- LEFT COLUMN: Analysis and Alerts -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Data Analysis & Operation Initiation (DFD 1.0 / 2.0) -->
+                <div class="card p-6">
+                    <h2 class="text-2xl font-semibold mb-4 text-indigo-300 border-b border-indigo-700 pb-2">
+                        Data Analysis & Operation Initiation (DFD 1.0 / 2.0)
+                    </h2>
+                    <div id="operation-buttons" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <!-- Simulate Raw Data Input -->
+                        <div id="raw-data-input" class="action-btn" onclick="simulateDataInput()">
+                            <p class="text-sm">Simulate Raw Data Input</p>
+                            <span class="text-xl font-bold mt-1 text-green-400">E1 Feed</span>
+                        </div>
+                        <!-- Run Prediction Algorithm -->
+                        <div id="run-prediction" class="action-btn" onclick="runPredictionModel()">
+                            <p class="text-sm">Run Prediction Algorithm</p>
+                            <span class="text-xl font-bold mt-1 text-blue-400">Analyze (2.0)</span>
+                        </div>
+                        <!-- Check Historical Integrity -->
+                        <div id="check-integrity" class="action-btn" onclick="checkHistoricalIntegrity()">
+                            <p class="text-sm">Check Historical Integrity</p>
+                            <span class="text-xl font-bold mt-1 text-yellow-400">D1/D3 Sync</span>
+                        </div>
+                        <!-- Placeholder for a 4th button (unused in current prototype) -->
+                        <div id="spare-operation" class="action-btn opacity-50 cursor-not-allowed">
+                            <p class="text-sm">System Health Check</p>
+                            <span class="text-xl font-bold mt-1 text-gray-500">NFR Status</span>
+                        </div>
+                    </div>
+
+                    <h3 class="text-xl font-medium mt-6 mb-3 text-indigo-400">Real-Time Environmental Readings</h3>
+                    <div class="grid grid-cols-4 gap-4">
+                        <!-- Metric: Seismic Activity -->
+                        <div class="metric-box">
+                            <p class="text-sm">Seismic Activity (Mw)</p>
+                            <span id="seismic-activity" class="text-3xl font-extrabold text-red-500">0.0</span>
+                        </div>
+                        <!-- Metric: Hydrological Flow -->
+                        <div class="metric-box">
+                            <p class="text-sm">Hydrological Flow (m³/s)</p>
+                            <span id="hydro-flow" class="text-3xl font-extrabold text-blue-500">0.0</span>
+                        </div>
+                        <!-- Metric: Wind Speed -->
+                        <div class="metric-box">
+                            <p class="text-sm">Wind Speed (km/h)</p>
+                            <span id="wind-speed" class="text-3xl font-extrabold text-green-500">0.0</span>
+                        </div>
+                        <!-- Metric: Dissemination Window -->
+                        <div class="metric-box">
+                            <p class="text-sm">Dissemination Window (Sec)</p>
+                            <span id="dissemination-window" class="text-3xl font-extrabold text-yellow-500">---</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert Generation & Dissemination (DFD 3.0) -->
+                <div id="alert-dissemination-panel" class="card p-6">
+                    <h2 class="text-2xl font-semibold mb-4 text-indigo-300 border-b border-indigo-700 pb-2">
+                        Alert Generation & Dissemination (DFD 3.0)
+                    </h2>
+                    <div class="flex items-center justify-between">
+                        <div id="alert-message" class="text-lg text-gray-400">System Nominal. Awaiting Sensor Input...</div>
+                        <button onclick="initiateAlertDissemination()"
+                                class="bg-red-700 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg transition duration-200 shadow-xl disabled:opacity-50"
+                                id="alert-button" disabled>
+                            Initiate Alert Dissemination
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Emergency Communication & Reporting (DFD 4.0) -->
+                <div class="card p-6">
+                    <h2 class="text-2xl font-semibold mb-4 text-indigo-300 border-b border-indigo-700 pb-2">
+                        Emergency Communication & Reporting (DFD 4.0)
+                    </h2>
+                    <p class="text-gray-400 mb-4">Unprocessed Field Reports / SOS Submissions:</p>
+                    <div id="field-reports-container" class="space-y-3">
+                        <!-- Field reports will be injected here by JavaScript -->
+                        <div class="text-gray-500 text-center py-4" id="no-reports-message">No pending field reports (DFD 4.0)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Logs and Status -->
+            <div class="space-y-8">
+                <!-- Responder Status Tracking (DFD 4.0) -->
+                <div class="card p-6">
+                    <h2 class="text-2xl font-semibold mb-4 text-indigo-300 border-b border-indigo-700 pb-2">
+                        Responder Status Tracking (DFD 4.0)
+                    </h2>
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-gray-400 text-sm border-b border-indigo-700">
+                                <th class="py-2">Team ID</th>
+                                <th class="py-2">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="responder-status-table">
+                            <!-- Rows will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- System Log (DFD 2.0/3.0 Data) -->
+                <div class="card p-6">
+                    <h2 class="text-2xl font-semibold mb-4 text-indigo-300 border-b border-indigo-700 pb-2">
+                        System Log (DFD 2.0/3.0 Data)
+                    </h2>
+                    <div id="system-log" class="h-64 overflow-y-scroll bg-gray-800 p-3 rounded-lg text-xs font-mono space-y-1">
+                        <!-- Log messages will be injected here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reference to external JavaScript file (app.js) -->
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Choose Image from Device</title>
+  <style>
+    body { font-family: system-ui, sans-serif; padding: 20px; background:#f7f7f7 }
+    .preview { inline-size:200px; block-size:200px; object-fit:cover; border-radius:8px; border:1px solid #ddd; display:block; margin-block-end:8px }
+    .controls { max-inline-size:420px }
+    .hint { color:#666; font-size:13px }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <h3>Pick an image from your device</h3>
+    <img id="preview" class="preview" src="" alt="No image selected" />
+    <input id="fileInput" type="file" accept="image/*" />
+    <div style="margin-block-start:8px">
+      <button id="saveBtn" type="button">Save as default</button>
+      <button id="resetBtn" type="button">Reset default</button>
+    </div>
+    <p class="hint">Selected image is previewed locally. "Save as default" stores the image in localStorage for future visits.</p>
+  </div>
+
+  <script>
+    (function(){
+      const input = document.getElementById('fileInput');
+      const preview = document.getElementById('preview');
+      const saveBtn = document.getElementById('saveBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const STORAGE_KEY = 'savedPreviewImageDataUrl';
+      const defaultPlaceholder = '';
+
+      // Load saved image from localStorage (if any)
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) preview.src = saved;
+        else preview.src = defaultPlaceholder;
+      } catch (e) {
+        preview.src = defaultPlaceholder;
+      }
+
+      // Live preview using Object URL (no upload)
+      let currentObjectUrl;
+      input.addEventListener('change', function () {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
+        currentObjectUrl = URL.createObjectURL(file);
+        preview.src = currentObjectUrl;
+      });
+
+      // Save currently shown image to localStorage (as DataURL)
+      saveBtn.addEventListener('click', function () {
+        // If preview is an object URL, convert file to DataURL via FileReader
+        const file = input.files && input.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            try { localStorage.setItem(STORAGE_KEY, e.target.result); alert('Saved as default.'); }
+            catch (err) { alert('Could not save image (storage limit).'); }
+          };
+          reader.readAsDataURL(file);
+          return;
+        }
+        // If no new file selected but preview src is already a data URL, save it
+        if (preview.src && preview.src.startsWith('data:')) {
+          try { localStorage.setItem(STORAGE_KEY, preview.src); alert('Saved as default.'); }
+          catch (err) { alert('Could not save image (storage limit).'); }
+          return;
+        }
+        alert('Select an image first to save.');
+      });
+
+      // Reset saved default
+      resetBtn.addEventListener('click', function () {
+        try { localStorage.removeItem(STORAGE_KEY); preview.src = defaultPlaceholder; input.value = ''; alert('Default cleared.'); }
+        catch (e) { alert('Could not clear saved image.'); }
+      });
+    })();
+  </script>
+</body>
+</html>

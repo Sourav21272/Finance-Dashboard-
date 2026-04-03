@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+  
+  <style>
+
+    .done{
+      text-decoration: line-through;
+      color:gray;
+    }
+
+  </style>
+  </head>
+
+
+  <script>
+
+    function process()
+    {
+      var task_name=document.getElementById("task_name").value
+      var li=document.createElement("li")
+      var check=document.createElement("input")
+      check.type="checkbox"
+      li.textContent=task_name
+      li.appendChild(check)
+      document.getElementById("list_of_tasks").appendChild(li)
+
+
+      check.addEventListener("change",function(){
+
+        if(this.checked){
+          li.classList.add("done")
+        }
+        else{
+          li.classList.remove("done")
+        }
+
+      })
+    
+    
+    
+    }
+
+  </script>
+
+  <br><br><br>
+  <input id="task_name" type="text" placeholder="ENTER THE TASK">
+  <br><br>
+
+  <button onclick="process()" >SAVE TASK</button>
+
+  <ul id="list_of_tasks">
+
+  </ul>
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+  </body>
+</html>

@@ -1,0 +1,19 @@
+:root{--bg:#f4f7fb;--card:#fff;--accent:#2b7cff;--muted:#666}
+*{box-sizing:border-box}
+body{font-family:system-ui,Arial;background:var(--bg);margin:0;padding:20px;display:flex;align-items:flex-start;justify-content:center;min-height:100vh}
+.card{background:var(--card);padding:20px;border-radius:8px;box-shadow:0 4px 12px rgba(10,10,10,.08);width:360px}
+.hidden{display:none}
+.muted{color:var(--muted);font-size:0.9rem}
+#loginForm input,#msgForm input{width:100%;padding:10px;margin:8px 0;border:1px solid #ddd;border-radius:6px}
+#loginForm button,#msgForm button{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:6px;cursor:pointer}
+#chatView{display:flex;gap:16px;width:1000px;max-width:calc(100% - 40px)}
+.sidebar{width:200px;background:var(--card);padding:12px;border-radius:8px;min-height:400px}
+.chat{flex:1;background:var(--card);padding:12px;border-radius:8px;display:flex;flex-direction:column;min-height:400px}
+header{display:flex;justify-content:space-between;align-items:center;padding-bottom:8px;border-bottom:1px solid #eee}
+#messages{list-style:none;padding:12px;margin:0;flex:1;overflow:auto}
+#messages li{margin-bottom:10px;padding:8px;border-radius:6px}
+.msg-me{background:#e6f0ff;align-self:flex-end}
+.msg-other{background:#f1f3f5}
+#msgForm{display:flex;gap:8px;padding-top:8px}
+#onlineList{list-style:none;padding:0;margin:0}
+#onlineList li{padding:6px 4px;border-bottom:1px dashed #f0f0f0}

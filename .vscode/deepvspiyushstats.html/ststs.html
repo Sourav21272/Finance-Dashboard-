@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold">🏏 Match Records Dashboard</h2>
+                <p class="text-muted">View batting and bowling performance from all uploaded PDFs.</p>
+            </div>
+            <a href="/upload" class="btn btn-primary">
+                + Upload New PDF
+            </a>
+        </div>
+
+        <div class="card shadow-lg border-0">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="py-3 ps-4">Match Name</th>
+                                <th class="py-3">Player Name</th>
+                                <th class="py-3 text-center bg-success bg-opacity-25 text-white">Batting</th>
+                                <th class="py-3 text-center bg-danger bg-opacity-25 text-white">Bowling</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in records %}
+                            <tr>
+                                <td class="ps-4">
+                                    <span class="badge bg-secondary">{{ record.match_name }}</span>
+                                </td>
+
+                                <td class="fw-bold text-primary">
+                                    {{ record.player_name }}
+                                </td>
+
+                                <td class="text-center">
+                                    {% if record.runs_scored > 0 or record.balls_faced > 0 %}
+                                        <div class="d-flex flex-column">
+                                            <span class="fs-5 fw-bold">{{ record.runs_scored }} runs</span>
+                                            <span class="text-muted small">({{ record.balls_faced }} balls)</span>
+                                            
+                                            {% if record.balls_faced > 0 %}
+                                            <span class="badge bg-light text-dark mt-1 border">
+                                                SR: {{ "%.1f"|format((record.runs_scored / record.balls_faced) * 100) }}
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+
+                                <td class="text-center">
+                                    {% if record.overs_bowled > 0 %}
+                                        <div class="d-flex flex-column">
+                                            <span class="fs-5 fw-bold text-danger">{{ record.wickets_taken }} Wickets</span>
+                                            <span class="text-muted small">for {{ record.runs_conceded }} runs</span>
+                                            <span class="badge bg-light text-dark mt-1 border">
+                                                {{ record.overs_bowled }} Overs
+                                            </span>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-5">
+                                    <h4 class="text-muted">No records found yet!</h4>
+                                    <p>Go to the Upload page to add your first match PDF.</p>
+                                    <a href="/upload" class="btn btn-outline-primary btn-sm">Upload Now</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

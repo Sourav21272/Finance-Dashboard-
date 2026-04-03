@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mini WhatsApp</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="login">
+        <input id="username" placeholder="Enter your name" maxlength="20">
+        <button id="joinBtn">Join Chat</button>
+        <div id="error"></div>
+    </div>
+    <div id="chat" style="display:none;">
+        <div id="users"></div>
+        <div id="messages"></div>
+        <input id="msgInput" placeholder="Type a message" maxlength="200">
+        <button id="sendBtn">Send</button>
+    </div>
+
+    <!-- Troubleshooting & run instructions added below -->
+    <section id="run-instructions" style="max-width:800px;margin:24px auto;padding:16px;border-radius:8px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.1);font-family:Arial, sans-serif;">
+        <h3 style="margin-top:0">Troubleshooting & how to run the server</h3>
+        <p>If PowerShell shows: "npm.ps1 cannot be loaded because running scripts is disabled", use one of the options below.</p>
+        <ol>
+            <li><strong>Quick & safe — use Command Prompt (recommended)</strong><br>
+                Open Start → type <code>cmd</code> → open Command Prompt, then run:
+                <pre>npm init -y
+npm install express socket.io
+node server.js</pre>
+            </li>
+            <li><strong>Allow npm scripts for current user (PowerShell)</strong><br>
+                In an elevated PowerShell (Run as Administrator) or regular PowerShell for current user, run:
+                <pre>Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+# then close/open PowerShell and run:
+npm init -y
+npm install express socket.io
+node server.js</pre>
+                Note: RemoteSigned is a common choice; it allows locally created scripts to run.
+            </li>
+            <li><strong>Run npm with an execution-policy bypass (one-time)</strong><br>
+                From PowerShell you can run npm with a bypass (no permanent policy change):
+                <pre>powershell -ExecutionPolicy Bypass -Command "npm init -y"</pre>
+            </li>
+            <li><strong>Call the npm executable directly</strong><br>
+                Try:
+                <pre>npm.cmd init -y</pre>
+                (sometimes avoids the .ps1 policy restriction)
+            </li>
+            <li><strong>Alternative shells</strong><br>
+                You can also use Git Bash, WSL, or Cmder to run npm without changing PowerShell policies.
+            </li>
+        </ol>
+
+        <p>After installing dependencies, run your server from the project folder:</p>
+        <pre>node server.js
+# then open http://localhost:3000 in your browser</pre>
+
+        <p>If you want a quick static preview of the UI without the server (no real-time chat), just open this file directly in the browser — the UI will display but real-time messaging requires the Node server + socket.io.</p>
+        <p style="font-size:12px;color:#666">More info: https://learn.microsoft.com/powershell/module/microsoft.powershell.security/set-executionpolicy</p>
+    </section>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
