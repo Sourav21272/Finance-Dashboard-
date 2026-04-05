@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categorized Auction List</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        header {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+        }
+        h1 { margin: 0; color: #1a237e; }
+        .date-info { color: #666; margin-top: 5px; }
+
+        /* Grid Layout for the 3 Categories */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 15px;
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Specific Colors for Each Category */
+        .header-bat { background-color: #1976d2; } /* Blue */
+        .header-all { background-color: #388e3c; } /* Green */
+        .header-ball { background-color: #f57c00; } /* Orange */
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        th {
+            background-color: #f8f9fa;
+            color: #555;
+            font-size: 0.9em;
+        }
+        tr:last-child td { border-bottom: none; }
+        
+        /* Price Colors */
+        .price-300 { color: #2e7d32; font-weight: bold; }
+        .price-200 { color: #f57c00; font-weight: bold; }
+        .price-150 { color: #c62828; font-weight: bold; }
+        .price-100 { color: #757575; font-weight: bold; }
+
+        .count-badge {
+            background-color: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Player Categories</h1>
+        <div class="date-info">Based on Auction List - Dec 19</div>
+    </header>
+
+    <div class="category-grid">
+        
+        <div class="card">
+            <div class="card-header header-bat">
+                Batsmen <span class="count-badge">7</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Player Name</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Protap</td><td class="price-300">300 ✔</td></tr>
+                    <tr><td>Boby</td><td class="price-300">300 ✔</td></tr>
+                    <tr><td>Akash</td><td class="price-300">300 ✔</td></tr>
+                    <tr><td>Nepal</td><td class="price-200">200 #</td></tr>
+                    <tr><td>Sandipan Frnd.</td><td class="price-200">200 #</td></tr>
+                    <tr><td>Hela</td><td class="price-150">150 X</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header header-all">
+                All Rounders <span class="count-badge">7</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Player Name</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                   
+                    <tr><td>Subho</td><td class="price-300">300 ✔</td></tr>
+                    <tr><td>Rudra</td><td class="price-300">300 ✔</td></tr>
+                    <tr><td>NRD</td><td class="price-200">200 #</td></tr>
+                    <tr><td>Niladri</td><td class="price-200">200 #</td></tr>
+                    <tr><td>Ponchu</td><td class="price-200">200 #</td></tr>
+                    <tr><td>Tatai</td><td class="price-150">150 X</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <div class="card-header header-ball">
+                Bowlers <span class="count-badge">7</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Player Name</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Nonte</td><td class="price-300">300 ✔</td></tr>
+                    <tr><td>Ritam</td><td class="price-300">300 ✔</td></tr>
+                    <tr><td>Dwip</td><td class="price-300">300 ✔</td></tr>
+                    <tr><td>Lala</td><td class="price-200">200 #</td></tr>
+                    <tr><td>Nitesh</td><td class="price-150">150 X</td></tr>
+                    <tr><td>Arik</td><td class="price-100">100 0</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Full Solar System - Gesture Control</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Segoe UI', sans-serif; }
+        
+        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+        
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;
+            pointer-events: none;
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+
+        #loader {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: #00d2ff; font-size: 24px; text-align: center;
+            background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; border: 2px solid #00d2ff;
+            pointer-events: auto;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.3);
+        }
+
+        #planet-name {
+            text-align: center; margin-top: 40px;
+            font-size: 4rem; font-weight: 800; color: rgba(255, 255, 255, 1);
+            text-shadow: 0 0 30px currentColor; letter-spacing: 5px;
+            text-transform: uppercase; transition: color 0.5s;
+        }
+
+        .bottom-panel {
+            display: flex; justify-content: space-between; align-items: end; padding: 20px;
+        }
+
+        #gesture-guide {
+            background: rgba(0, 0, 0, 0.7); color: white; padding: 20px;
+            border-radius: 12px; border-left: 5px solid #00d2ff;
+            font-size: 15px; line-height: 1.8; backdrop-filter: blur(5px);
+        }
+        .guide-item { display: flex; align-items: center; gap: 10px; }
+        .icon { font-size: 20px; width: 30px; }
+
+        #webcam-preview {
+            width: 180px; height: 135px; border-radius: 12px;
+            border: 3px solid rgba(255,255,255,0.5);
+            transform: scaleX(-1);
+            object-fit: cover; background: #222;
+        }
+
+        #status-msg {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 3rem; color: #ffff00; text-shadow: 0 0 20px orange;
+            opacity: 0; transition: opacity 0.3s; font-weight: bold;
+        }
+    </style>
+    
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+                "@mediapipe/tasks-vision": "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/+esm"
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <div id="planet-name">MERCURY</div>
+        <div id="status-msg">ZOOM!</div>
+
+        <div class="bottom-panel">
+            <div id="gesture-guide">
+                <div class="guide-item"><span class="icon">🖐</span> <b>Open Hand:</b> Next Planet</div>
+                <div class="guide-item"><span class="icon">✊</span> <b>Fist:</b> Zoom & Speed Up</div>
+                <div class="guide-item"><span class="icon">✌️</span> <b>Peace:</b> Reset View</div>
+            </div>
+            <video id="webcam-preview" autoplay playsinline muted></video>
+        </div>
+    </div>
+
+    <div id="loader">
+        <div>🚀 Initializing Universe...</div>
+        <div style="font-size: 14px; margin-top: 10px; color: #aaa;">Please allow camera access.</div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { FilesetResolver, HandLandmarker } from '@mediapipe/tasks-vision';
+
+        // --- GLOBAL VARIABLES ---
+        let scene, camera, renderer;
+        let sun, planets = [];
+        let stars;
+        
+        // Full Solar System Data
+        const planetData = [
+            { name: "MERCURY", color: 0xAAAAAA, size: 0.8, dist: 10, speed: 0.015 },
+            { name: "VENUS",   color: 0xFFCC33, size: 1.2, dist: 15, speed: 0.012 },
+            { name: "EARTH",   color: 0x2255FF, size: 1.3, dist: 20, speed: 0.010 },
+            { name: "MARS",    color: 0xFF4422, size: 0.9, dist: 25, speed: 0.008 },
+            { name: "JUPITER", color: 0xDDAA55, size: 3.5, dist: 35, speed: 0.005 },
+            { name: "SATURN",  color: 0xEEDD88, size: 3.0, dist: 48, speed: 0.004, hasRing: true },
+            { name: "URANUS",  color: 0x44FFFF, size: 2.0, dist: 60, speed: 0.003 },
+            { name: "NEPTUNE", color: 0x3333FF, size: 1.9, dist: 72, speed: 0.002 }
+        ];
+
+        let currentPlanetIndex = 2; // Start at Earth
+        let isZoomed = false;
+        let rotationMultiplier = 1;
+        let lastGestureTime = 0;
+        
+        // --- 1. THREE.JS SCENE SETUP ---
+        function initScene() {
+            const container = document.getElementById('canvas-container');
+            
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.015);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            // Enable shadow map for better depth (optional, but good for "bright" look)
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            // --- LIGHTING (BRIGHTER) ---
+            const ambientLight = new THREE.AmbientLight(0x404040, 2); // Soft overall light
+            scene.add(ambientLight);
+            
+            // The Sun Light
+            const pointLight = new THREE.PointLight(0xffffff, 4, 300); // Intensity increased to 4
+            pointLight.position.set(0, 0, 0);
+            scene.add(pointLight);
+
+            // Sun Mesh (Glowing)
+            const sunGeo = new THREE.SphereGeometry(5, 32, 32);
+            const sunMat = new THREE.MeshBasicMaterial({ color: 0xffdd00 });
+            sun = new THREE.Mesh(sunGeo, sunMat);
+            
+            // Add a glow effect to sun using a larger semi-transparent sphere
+            const sunGlowGeo = new THREE.SphereGeometry(7, 32, 32);
+            const sunGlowMat = new THREE.MeshBasicMaterial({ color: 0xffaa00, transparent: true, opacity: 0.3, side: THREE.BackSide });
+            const sunGlow = new THREE.Mesh(sunGlowGeo, sunGlowMat);
+            sun.add(sunGlow);
+            scene.add(sun);
+
+            // --- PLANET CREATION ---
+            planets = planetData.map(p => {
+                const geo = new THREE.SphereGeometry(p.size, 32, 32);
+                
+                // Use Standard Material with Emissive property to make them "bright" even in shadow
+                const mat = new THREE.MeshStandardMaterial({ 
+                    color: p.color, 
+                    roughness: 0.6,
+                    metalness: 0.1,
+                    emissive: p.color,      // This makes the color pop
+                    emissiveIntensity: 0.2  // Slight self-illumination
+                });
+                
+                const mesh = new THREE.Mesh(geo, mat);
+                
+                // Orbit pivot
+                const pivot = new THREE.Object3D();
+                pivot.add(mesh);
+                mesh.position.x = p.dist;
+                
+                // Add Ring for Saturn
+                if(p.hasRing) {
+                    const ringGeo = new THREE.RingGeometry(p.size * 1.4, p.size * 2.5, 64);
+                    const ringMat = new THREE.MeshStandardMaterial({ 
+                        color: 0xccaa88, 
+                        side: THREE.DoubleSide, 
+                        transparent: true, 
+                        opacity: 0.8,
+                        emissive: 0x443322,
+                        emissiveIntensity: 0.2
+                    });
+                    const ring = new THREE.Mesh(ringGeo, ringMat);
+                    ring.rotation.x = -Math.PI / 2;
+                    mesh.add(ring);
+                }
+
+                // Add orbit trail (thin line)
+                const trailGeo = new THREE.RingGeometry(p.dist - 0.05, p.dist + 0.05, 128);
+                const trailMat = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.1, transparent: true, side: THREE.DoubleSide });
+                const trail = new THREE.Mesh(trailGeo, trailMat);
+                trail.rotation.x = Math.PI / 2;
+                scene.add(trail);
+
+                scene.add(pivot);
+                return { mesh, pivot, data: p, angle: Math.random() * Math.PI * 2 };
+            });
+
+            // --- STARFIELD (BRIGHTER) ---
+            const starGeo = new THREE.BufferGeometry();
+            const starCount = 3000;
+            const posArray = new Float32Array(starCount * 3);
+            for(let i=0; i<starCount*3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 400;
+            }
+            starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+            const starMat = new THREE.PointsMaterial({ size: 0.2, color: 0xffffff, transparent: true, opacity: 0.8 });
+            stars = new THREE.Points(starGeo, starMat);
+            scene.add(stars);
+
+            window.addEventListener('resize', onWindowResize, false);
+            updateUI(); // Set initial label
+            animate();
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- 2. ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Orbit Planets
+            planets.forEach(p => {
+                p.pivot.rotation.y += p.data.speed * rotationMultiplier;
+                p.mesh.rotation.y += 0.01 * rotationMultiplier;
+            });
+
+            // Camera Follow Logic
+            const targetPlanet = planets[currentPlanetIndex];
+            const pPos = new THREE.Vector3();
+            targetPlanet.mesh.getWorldPosition(pPos);
+
+            let offset;
+            if (isZoomed) {
+                // Close up
+                offset = new THREE.Vector3(0, 1.5, 4).multiplyScalar(targetPlanet.data.size * 0.8);
+            } else {
+                // Normal view
+                offset = new THREE.Vector3(4, 3, 8).multiplyScalar(targetPlanet.data.size * 0.8 + 1);
+            }
+
+            // Smooth Camera LERP
+            const desiredPos = pPos.clone().add(offset);
+            camera.position.lerp(desiredPos, 0.05);
+            camera.lookAt(pPos);
+
+            // Rotate stars
+            stars.rotation.y -= 0.0003;
+
+            renderer.render(scene, camera);
+        }
+
+        // --- 3. MEDIAPIPE HAND TRACKING ---
+        let handLandmarker = undefined;
+        const video = document.getElementById('webcam-preview');
+        const loader = document.getElementById('loader');
+
+        async function startWebcam() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                video.addEventListener('loadeddata', predictWebcam);
+            } catch (err) {
+                console.error(err);
+                loader.innerHTML = "Error: Camera access denied.<br>Please ensure you are running on HTTPS or localhost.";
+                loader.style.color = "red";
+            }
+        }
+
+        async function initMediaPipe() {
+            const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
+            handLandmarker = await HandLandmarker.createFromOptions(vision, {
+                baseOptions: {
+                    modelAssetPath: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`,
+                    delegate: "GPU"
+                },
+                runningMode: "VIDEO",
+                numHands: 1
+            });
+            loader.style.display = 'none';
+            startWebcam();
+        }
+
+        let lastVideoTime = -1;
+        async function predictWebcam() {
+            if (video.currentTime !== lastVideoTime) {
+                lastVideoTime = video.currentTime;
+                const result = handLandmarker.detectForVideo(video, performance.now());
+                if (result.landmarks.length > 0) {
+                    processGesture(result.landmarks[0]);
+                }
+            }
+            requestAnimationFrame(predictWebcam);
+        }
+
+        // --- 4. GESTURE LOGIC ---
+        function processGesture(landmarks) {
+            // Check fingers extension
+            const tips = [8, 12, 16, 20];
+            let extendedCount = 0;
+            tips.forEach(t => {
+                if (landmarks[t].y < landmarks[0].y - 0.15) extendedCount++;
+            });
+            
+            const indexUp = landmarks[8].y < landmarks[6].y;
+            const middleUp = landmarks[12].y < landmarks[10].y;
+            const ringDown = landmarks[16].y > landmarks[14].y;
+            const pinkyDown = landmarks[20].y > landmarks[18].y;
+
+            const now = Date.now();
+
+            // 1. PEACE SIGN (Reset)
+            if (indexUp && middleUp && ringDown && pinkyDown && extendedCount === 2) {
+                if (isZoomed || rotationMultiplier > 1) {
+                    showStatus("NORMAL VIEW");
+                    isZoomed = false;
+                    rotationMultiplier = 1;
+                }
+            }
+            // 2. OPEN HAND (Next Planet)
+            else if (extendedCount >= 4) {
+                if (now - lastGestureTime > 1500) { 
+                    lastGestureTime = now;
+                    nextPlanet();
+                }
+            }
+            // 3. FIST (Zoom)
+            else if (extendedCount === 0) {
+                if (!isZoomed) {
+                    showStatus("WARP SPEED!");
+                    isZoomed = true;
+                    rotationMultiplier = 5;
+                }
+            }
+        }
+
+        // --- 5. APP LOGIC ---
+        function nextPlanet() {
+            currentPlanetIndex = (currentPlanetIndex + 1) % planets.length;
+            updateUI();
+            const pName = planets[currentPlanetIndex].data.name;
+            showStatus(pName);
+        }
+
+        function updateUI() {
+            const p = planets[currentPlanetIndex].data;
+            const nameEl = document.getElementById('planet-name');
+            nameEl.innerText = p.name;
+            // Brighten the text color
+            nameEl.style.color = '#' + p.color.toString(16).padStart(6, '0');
+            nameEl.style.textShadow = `0 0 40px #${p.color.toString(16).padStart(6, '0')}`;
+        }
+
+        function showStatus(msg) {
+            const el = document.getElementById('status-msg');
+            el.innerText = msg;
+            el.style.opacity = 1;
+            setTimeout(() => { el.style.opacity = 0; }, 1200);
+        }
+
+        // Initialize
+        initScene();
+        initMediaPipe();
+
+    </script>
+</body>
+</html>

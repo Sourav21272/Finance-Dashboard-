@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cricket Match Bidding Sheet</title>
+   <style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: radial-gradient(circle at top, #ff512f, #dd2476, #1e1e1e);
+        background-attachment: fixed;
+        color: #fff;
+        margin: 0;
+        padding: 20px;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: rgba(0, 0, 0, 0.85);
+        padding: 30px;
+        box-shadow: 0 0 30px rgba(255, 80, 0, 0.8);
+        border-radius: 12px;
+        border: 2px solid #ff6a00;
+    }
+
+    h1 {
+        text-align: center;
+        color: #ffcc00;
+        margin-bottom: 30px;
+        font-size: 2.6em;
+        text-shadow: 0 0 15px #ff4500;
+        border-bottom: 2px solid #ff6a00;
+        padding-bottom: 15px;
+    }
+
+    .match-details {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+        font-weight: bold;
+        background: linear-gradient(90deg, #ff512f, #f09819);
+        padding: 18px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 0 15px rgba(255, 153, 0, 0.7);
+    }
+
+    .section-title {
+        font-size: 1.6em;
+        color: #ffcc00;
+        margin-top: 35px;
+        margin-bottom: 15px;
+        border-left: 6px solid #ff4500;
+        padding-left: 12px;
+        text-shadow: 0 0 8px #ff4500;
+    }
+
+    .teams-container {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .team-box {
+        flex: 1;
+        background: linear-gradient(145deg, #1e1e1e, #2b2b2b);
+        border: 2px solid #ff6a00;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 0 20px rgba(255, 80, 0, 0.7);
+        animation: pulse 2.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 15px rgba(255, 80, 0, 0.6); }
+        50% { box-shadow: 0 0 30px rgba(255, 120, 0, 1); }
+        100% { box-shadow: 0 0 15px rgba(255, 80, 0, 0.6); }
+    }
+
+    .team-box h3 {
+        margin-top: 0;
+        color: #ffcc00;
+        text-align: center;
+        font-size: 1.5em;
+        text-shadow: 0 0 10px #ff4500;
+    }
+
+    .team-list {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .team-list li {
+        padding: 12px;
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+        display: flex;
+        justify-content: space-between;
+        transition: transform 0.2s ease;
+    }
+
+    .team-list li:hover {
+        transform: scale(1.05);
+        background: rgba(255, 80, 0, 0.15);
+    }
+
+    .bid-value {
+        font-weight: bold;
+        color: #00ff9d;
+        text-shadow: 0 0 8px #00ff9d;
+    }
+
+    .captain {
+        font-weight: bold;
+        color: #ff4d4d;
+        text-shadow: 0 0 10px red;
+    }
+
+    .player-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+        background: #111;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(255, 80, 0, 0.6);
+    }
+
+    .player-table th, .player-table td {
+        border: 1px solid rgba(255,255,255,0.15);
+        padding: 12px;
+        text-align: left;
+    }
+
+    .player-table th {
+        background: linear-gradient(90deg, #ff512f, #f09819);
+        color: #000;
+        font-size: 1.1em;
+    }
+
+    .player-table tr:nth-child(even) {
+        background-color: rgba(255,255,255,0.05);
+    }
+
+    .ret-status {
+        color: #ff4d4d;
+        font-size: 0.9em;
+        margin-left: 5px;
+        text-shadow: 0 0 6px red;
+    }
+</style>
+
+</head>
+<body>
+
+<div class="container">
+    <h1>Cricket Match Bidding Sheet</h1>
+
+ 
+    <h2 class="section-title">Team  Making & Bidding (Friday, Dec 19)</h2>
+    <div class="teams-container">
+        <div class="team-box">
+            <h3>Team Rana [4700 Points]</h3>
+            <ul class="team-list">
+                <li class="captain">1. Rana (C)</li>
+                <li>2. Protap <span class="bid-value">[300]</span></li>
+                <li>3. Boby <span class="bid-value">[300]</span></li>
+                <li>4. Arik <span class="bid-value">[1150]</span></li>
+                <li>5. Hela <span class="bid-value">[270]</span></li>
+                <li>6. Nepal Da <span class="bid-value">[400]</span></li>
+                <li>7. Niladri Da <span class="bid-value">[330]</span></li>
+                <li>8. Choto <span class="bid-value">[800]</span></li>
+                <li>9. Rudro <span class="bid-value">[300]</span></li>
+                
+                
+            </ul>
+        </div>
+        <div class="team-box">
+            <h3>Team Sandipan [4600 Points]</h3>
+            <ul class="team-list">
+                <li class="captain">1. Sandipan (C)</li>
+                <li>2. Nonte <span class="bid-value">[200]</span></li>
+                <li>3. Nitesh <span class="bid-value">[200]</span></li>
+                 <li>4. Tatai <span class="bid-value">[220]</span></li>
+                <li>5. Lala <span class="bid-value">[350]</span></li>
+                <li>6. Ponchu <span class="bid-value">[210]</span></li>
+                <li>7. NRD <span class="bid-value">[300]</span></li>
+                <li>8. Dwip <span class="bid-value">[350]</span></li>
+                <li>9. Ritam <span class="bid-value">[400]</span></li>
+                 <li>10. Subho<span class="bid-value">[300]</span></li>
+
+            </ul>
+        </div>
+    </div>
+
+    <h2 class="section-title">Player Categories (Friday, Dec 19)</h2>
+    <table class="player-table">
+        <thead>
+            <tr>
+                <th>No.</th>
+                <th>Batsman</th>
+                <th>All Rounder</th>
+                <th>Bowler</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>Protap <span class="ret-status">(Ret.)</span></td>
+                <td>Subho</td>
+                <td>Nonte <span class="ret-status">(Ret.)</span></td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Boby <span class="ret-status">(Ret.)</span></td>
+                <td>Rudro</td>
+                <td>Ritam</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Akash</td>
+                <td>NRD</td>
+                <td>Lala</td>
+                
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Nepal</td>
+                <td>Niladri</td>
+                <td>Dwip</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>Sandipan frnd.</td>
+                <td>Tatai</td>
+                <td>Nitesh <span class="ret-status">(Ret.)</span></td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>Hela</td>
+                <td>Ponchu</td>
+                <td>Arik</td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+
+</div>
+
+</body>
+</html>

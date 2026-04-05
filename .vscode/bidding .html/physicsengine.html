@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Hand Physics - Dual Wield</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #050505; font-family: 'Courier New', Courier, monospace; }
+        #game-container { position: relative; width: 100vw; height: 100vh; }
+        canvas { display: block; position: absolute; top: 0; left: 0; z-index: 2; }
+        
+        /* Cyberpunk Overlay */
+        #overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 2px, 3px 100%;
+            z-index: 5; pointer-events: none;
+        }
+
+        #ui-layer { position: absolute; top: 20px; left: 20px; color: #00ffcc; z-index: 10; pointer-events: none; }
+        h1 { margin: 0; text-transform: uppercase; text-shadow: 0 0 10px #00ffcc; font-size: 24px; }
+        .status { margin-top: 10px; font-size: 14px; color: #fff; opacity: 0.8; }
+        
+        #loader {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: #00ffcc; font-size: 20px; z-index: 20; text-align: center;
+        }
+        #input_video { display: none; }
+    </style>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="ui-layer">
+        <h1>Gravity Hands (Dual)</h1>
+        <div class="status" id="status">State: INITIALIZING...</div>
+        <div class="status">👌 LEFT: Cyan | 👌 RIGHT: Pink</div>
+    </div>
+    
+    <div id="loader">LOADING DUAL HAND AI...</div>
+    <div id="overlay"></div>
+    
+    <video id="input_video"></video>
+    <canvas id="output_canvas"></canvas>
+</div>
+
+<script>
+    // --- CONFIGURATION ---
+    const COLORS = {
+        background: '#050505',
+        boxBorder: '#00ffcc',
+        boxFill: 'rgba(0, 255, 204, 0.1)',
+        constraint: '#ffff00',
+        skeleton: '#ffffff',
+        leftHand: '#00ffff', // Cyan
+        rightHand: '#ff00ff' // Magenta
+    };
+
+    const CANVAS_WIDTH = window.innerWidth;
+    const CANVAS_HEIGHT = window.innerHeight;
+
+    // --- PHYSICS ENGINE SETUP (Matter.js) ---
+    const Engine = Matter.Engine,
+          Runner = Matter.Runner,
+          Bodies = Matter.Bodies,
+          Composite = Matter.Composite,
+          Constraint = Matter.Constraint,
+          Vector = Matter.Vector;
+
+    const engine = Engine.create();
+    engine.world.gravity.y = 1;
+
+    const canvas = document.getElementById('output_canvas');
+    canvas.width = CANVAS_WIDTH;
+    canvas.height = CANVAS_HEIGHT;
+    const ctx = canvas.getContext('2d');
+
+    // Bounds
+    const ground = Bodies.rectangle(CANVAS_WIDTH / 2, CANVAS_HEIGHT + 30, CANVAS_WIDTH, 60, { isStatic: true });
+    const leftWall = Bodies.rectangle(-30, CANVAS_HEIGHT / 2, 60, CANVAS_HEIGHT * 2, { isStatic: true });
+    const rightWall = Bodies.rectangle(CANVAS_WIDTH + 30, CANVAS_HEIGHT / 2, 60, CANVAS_HEIGHT * 2, { isStatic: true });
+
+    // Cubes
+    const stack = [];
+    const boxSize = 60;
+    for (let i = 0; i < 10; i++) {
+        const x = CANVAS_WIDTH / 2 + (Math.random() - 0.5) * 300;
+        const y = -Math.random() * 500 - 100;
+        const box = Bodies.rectangle(x, y, boxSize, boxSize, {
+            restitution: 0.5, friction: 0.5, density: 0.04
+        });
+        stack.push(box);
+    }
+
+    Composite.add(engine.world, [ground, leftWall, rightWall, ...stack]);
+
+    // --- DUAL HAND STATE MANAGEMENT ---
+    // We store state separately for "Left" and "Right" hands to prevent crossing.
+    const handStates = {
+        'Left': { 
+            body: Bodies.circle(0, 0, 10, { isStatic: true, isSensor: true }),
+            constraint: null,
+            isPinching: false,
+            pinchX: 0, pinchY: 0,
+            color: COLORS.leftHand
+        },
+        'Right': { 
+            body: Bodies.circle(0, 0, 10, { isStatic: true, isSensor: true }),
+            constraint: null,
+            isPinching: false,
+            pinchX: 0, pinchY: 0,
+            color: COLORS.rightHand
+        }
+    };
+
+    // Add invisible hand bodies to physics world
+    Composite.add(engine.world, [handStates['Left'].body, handStates['Right'].body]);
+
+    const runner = Runner.create();
+    Runner.run(runner, engine);
+
+    // --- MEDIA PIPE SETUP ---
+    const videoElement = document.getElementById('input_video');
+    const statusElement = document.getElementById('status');
+    const loaderElement = document.getElementById('loader');
+
+    // Store raw landmarks for rendering
+    let currentLandmarksMap = {}; 
+
+    function onResults(results) {
+        loaderElement.style.display = 'none';
+        currentLandmarksMap = {}; // Reset render data
+        
+        const activeLabels = new Set();
+
+        if (results.multiHandLandmarks && results.multiHandedness) {
+            
+            // Loop through all detected hands
+            for (let i = 0; i < results.multiHandLandmarks.length; i++) {
+                const landmarks = results.multiHandLandmarks[i];
+                const label = results.multiHandedness[i].label; // "Left" or "Right"
+                
+                activeLabels.add(label);
+                currentLandmarksMap[label] = landmarks; // Save for drawing
+
+                updateHandPhysics(label, landmarks);
+            }
+        }
+
+        // Release objects for hands that are no longer detected
+        ['Left', 'Right'].forEach(label => {
+            if (!activeLabels.has(label)) {
+                releaseObject(label);
+            }
+        });
+
+        const count = activeLabels.size;
+        statusElement.innerHTML = count > 0 ? `State: TRACKING ${count} HAND(S)` : "State: LOOKING FOR HANDS...";
+    }
+
+    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+
+    hands.setOptions({
+        maxNumHands: 2, // ENABLE 2 HANDS
+        modelComplexity: 1,
+        minDetectionConfidence: 0.7,
+        minTrackingConfidence: 0.7
+    });
+
+    hands.onResults(onResults);
+
+    const camera = new Camera(videoElement, {
+        onFrame: async () => { await hands.send({image: videoElement}); },
+        width: 1280, height: 720
+    });
+    camera.start();
+
+    // --- GAME LOGIC ---
+
+    function updateHandPhysics(label, landmarks) {
+        const hand = handStates[label];
+        
+        // 1. Calculate Pinch Point (Midpoint of Index & Thumb)
+        const indexTip = landmarks[8];
+        const thumbTip = landmarks[4];
+
+        const ix = indexTip.x * CANVAS_WIDTH;
+        const iy = indexTip.y * CANVAS_HEIGHT;
+        const tx = thumbTip.x * CANVAS_WIDTH;
+        const ty = thumbTip.y * CANVAS_HEIGHT;
+
+        hand.pinchX = (ix + tx) / 2;
+        hand.pinchY = (iy + ty) / 2;
+
+        // Move the invisible physics body
+        Matter.Body.setPosition(hand.body, { x: hand.pinchX, y: hand.pinchY });
+
+        // 2. Pinch Detection
+        const distance = Math.hypot(ix - tx, iy - ty);
+        const PINCH_THRESHOLD = 60;
+
+        if (distance < PINCH_THRESHOLD) {
+            if (!hand.isPinching) {
+                hand.isPinching = true;
+                tryGrabObject(label);
+            }
+        } else {
+            if (hand.isPinching) {
+                hand.isPinching = false;
+                releaseObject(label);
+            }
+        }
+    }
+
+    function tryGrabObject(label) {
+        const hand = handStates[label];
+        // Find physics bodies under the pinch point
+        const bodies = Matter.Query.point(stack, { x: hand.pinchX, y: hand.pinchY });
+
+        if (bodies.length > 0) {
+            const body = bodies[0];
+            
+            hand.constraint = Constraint.create({
+                bodyA: hand.body,
+                bodyB: body,
+                pointA: { x: 0, y: 0 },
+                pointB: { x: hand.pinchX - body.position.x, y: hand.pinchY - body.position.y },
+                stiffness: 0.2,
+                damping: 0.1
+            });
+
+            Composite.add(engine.world, hand.constraint);
+        }
+    }
+
+    function releaseObject(label) {
+        const hand = handStates[label];
+        if (hand.constraint) {
+            Composite.remove(engine.world, hand.constraint);
+            hand.constraint = null;
+        }
+    }
+
+    // --- RENDERING ---
+
+    function draw() {
+        ctx.fillStyle = COLORS.background;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 1. Draw Cubes
+        stack.forEach(body => {
+            const vertices = body.vertices;
+            ctx.beginPath();
+            ctx.moveTo(vertices[0].x, vertices[0].y);
+            for (let j = 1; j < vertices.length; j++) ctx.lineTo(vertices[j].x, vertices[j].y);
+            ctx.lineTo(vertices[0].x, vertices[0].y);
+            
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = COLORS.boxBorder;
+            ctx.fillStyle = COLORS.boxFill;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = COLORS.boxBorder;
+            ctx.fill();
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        });
+
+        // 2. Draw Hand Constraints & Skeletons
+        ['Left', 'Right'].forEach(label => {
+            const hand = handStates[label];
+            const landmarks = currentLandmarksMap[label];
+
+            // Draw Physics Constraint (The visible "Spring")
+            if (hand.constraint) {
+                const bodyB = hand.constraint.bodyB;
+                const pa = hand.body.position; // Hand pos
+                const pb = Vector.add(bodyB.position, hand.constraint.pointB); // Block attachment pos
+
+                ctx.beginPath();
+                ctx.moveTo(pa.x, pa.y);
+                ctx.lineTo(pb.x, pb.y);
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = hand.color;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Draw Skeleton
+            if (landmarks) {
+                drawSkeleton(landmarks, hand.color, hand.isPinching, hand.pinchX, hand.pinchY);
+            }
+        });
+
+        requestAnimationFrame(draw);
+    }
+
+    function drawSkeleton(landmarks, color, isPinching, px, py) {
+        const connections = [
+            [0,1], [1,2], [2,3], [3,4],
+            [0,5], [5,6], [6,7], [7,8],
+            [0,9], [9,10], [10,11], [11,12],
+            [0,13], [13,14], [14,15], [15,16],
+            [0,17], [17,18], [18,19], [19,20],
+            [5,9], [9,13], [13,17]
+        ];
+
+        ctx.strokeStyle = COLORS.skeleton;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (const [start, end] of connections) {
+            const s = landmarks[start];
+            const e = landmarks[end];
+            ctx.moveTo(s.x * CANVAS_WIDTH, s.y * CANVAS_HEIGHT);
+            ctx.lineTo(e.x * CANVAS_WIDTH, e.y * CANVAS_HEIGHT);
+        }
+        ctx.stroke();
+
+        ctx.fillStyle = color;
+        for (const lm of landmarks) {
+            ctx.beginPath();
+            ctx.arc(lm.x * CANVAS_WIDTH, lm.y * CANVAS_HEIGHT, 4, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+
+        if (isPinching) {
+            ctx.beginPath();
+            ctx.arc(px, py, 15, 0, 2 * Math.PI);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 4;
+            ctx.stroke();
+        }
+    }
+
+    draw();
+
+</script>
+</body>
+</html>

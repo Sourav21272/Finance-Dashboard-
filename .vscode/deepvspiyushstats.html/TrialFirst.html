@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .hero-gradient {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+        color: white;
+        border-radius: 15px;
+    }
+    .search-input {
+        border-radius: 50px;
+        padding-left: 25px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s;
+    }
+    .search-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 15px rgba(13, 110, 253, 0.2);
+    }
+    .player-row {
+        transition: transform 0.2s, background-color 0.2s;
+    }
+    .player-row:hover {
+        transform: scale(1.005);
+        background-color: #f8f9fa;
+        z-index: 10;
+        position: relative;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .stat-badge {
+        min-width: 60px;
+        display: inline-block;
+    }
+    .avatar-circle {
+        width: 40px;
+        height: 40px;
+        background-color: #e9ecef;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #495057;
+        margin-right: 12px;
+    }
+</style>
+
+<div class="row">
+    <div class="col-md-12">
+        
+        <div class="hero-gradient p-5 mb-5 shadow-lg position-relative overflow-hidden">
+            <div class="position-relative z-1">
+                <h1 class="display-5 fw-bold mb-2">🏏 Cricket Legends Hub</h1>
+                <p class="lead opacity-75 mb-4">The ultimate archive of every run, wicket, and match moment.</p>
+                
+                <div class="d-flex gap-3">
+                    <a href="/upload" class="btn btn-light text-primary fw-bold px-4 py-2 rounded-pill shadow-sm">
+                        + Upload Match PDF
+                    </a>
+                    <div class="text-white align-self-center ms-3 small opacity-75">
+                        Database contains {{ records|length }} records
+                    </div>
+                </div>
+            </div>
+            <div style="position: absolute; right: -50px; top: -50px; width: 300px; height: 300px; background: rgba(255,255,255,0.1); border-radius: 50%;"></div>
+        </div>
+
+        <div class="row justify-content-center mb-4" style="margin-top: -60px;">
+            <div class="col-md-10">
+                <div class="card shadow border-0 rounded-4">
+                    <div class="card-body p-2">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-0 ps-3">🔍</span>
+                            <input type="text" id="searchInput" class="form-control border-0 py-3 fs-5" placeholder="Search for a Player (e.g., Piyush) or Match Name..." onkeyup="filterTable()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card shadow-lg border-0 rounded-4 overflow-hidden mb-5">
+            <div class="card-header bg-white py-3 border-bottom border-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold text-dark">📋 Performance Ledger</h5>
+                    <span class="badge bg-light text-dark border">Live Data</span>
+                </div>
+            </div>
+            
+            <div class="table-responsive" style="max-height: 800px; overflow-y: auto;">
+                <table class="table align-middle mb-0" id="statsTable" style="border-collapse: separate; border-spacing: 0;">
+                    <thead class="bg-light sticky-top" style="z-index: 20;">
+                        <tr class="text-uppercase small text-muted">
+                            <th class="py-3 ps-4 border-bottom-0">Match Details</th>
+                            <th class="py-3 border-bottom-0">Athlete</th>
+                            <th class="py-3 text-center border-bottom-0 text-success">Batting Stats</th>
+                            <th class="py-3 text-center border-bottom-0 text-danger">Bowling Stats</th>
+                        </tr>
+                    </thead>
+                    <tbody class="border-top-0">
+                        {% for record in records %}
+                        <tr class="player-row border-bottom border-light">
+                            <td class="ps-4">
+                                <div class="d-flex align-items-center">
+                                    <div class="d-flex flex-column">
+                                        <span class="fw-semibold text-dark">{{ record.match_name }}</span>
+                                        <span class="small text-muted" style="font-size: 0.75rem;">ID: #{{ record.id }}</span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar-circle shadow-sm">
+                                        {{ record.player_name[0] | upper }}
+                                    </div>
+                                    <span class="fw-bold text-dark fs-6">{{ record.player_name }}</span>
+                                </div>
+                            </td>
+
+                            <td class="text-center bg-success bg-opacity-10">
+                                {% if record.runs_scored > 0 or record.balls_faced > 0 %}
+                                    <div class="d-flex flex-column justify-content-center align-items-center py-2">
+                                        <span class="badge bg-success rounded-pill px-3 py-2 shadow-sm mb-1 stat-badge">
+                                            {{ record.runs_scored }} Runs
+                                        </span>
+                                        <span class="small text-muted fw-semibold">
+                                            {{ record.balls_faced }} balls
+                                        </span>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted opacity-25 fw-bold">-</span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-center bg-danger bg-opacity-10">
+                                {% if record.overs_bowled > 0 %}
+                                    <div class="d-flex flex-column justify-content-center align-items-center py-2">
+                                        <span class="badge bg-danger rounded-pill px-3 py-2 shadow-sm mb-1 stat-badge">
+                                            {{ record.wickets_taken }} Wkts
+                                        </span>
+                                        <span class="small text-muted fw-semibold">
+                                            {{ record.overs_bowled }} overs • {{ record.runs_conceded }} runs
+                                        </span>
+                                    </div>
+                                {% else %}
+                                    <span class="text-muted opacity-25 fw-bold">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5">
+                                <div class="py-5">
+                                    <h1 class="display-1">📂</h1>
+                                    <h4 class="text-muted mt-3">No records found</h4>
+                                    <p class="text-muted">Upload a scorecard PDF to start building your database.</p>
+                                    <a href="/upload" class="btn btn-primary rounded-pill px-4 mt-2">Get Started</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<script>
+function filterTable() {
+    var input = document.getElementById("searchInput");
+    var filter = input.value.toUpperCase();
+    var table = document.getElementById("statsTable");
+    var tr = table.getElementsByTagName("tr");
+
+    for (var i = 1; i < tr.length; i++) {
+        var matchNameCol = tr[i].getElementsByTagName("td")[0];
+        var playerNameCol = tr[i].getElementsByTagName("td")[1];
+        
+        if (matchNameCol || playerNameCol) {
+            var matchText = matchNameCol.textContent || matchNameCol.innerText;
+            var playerText = playerNameCol.textContent || playerNameCol.innerText;
+            
+            if (matchText.toUpperCase().indexOf(filter) > -1 || playerText.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }       
+    }
+}
+</script>
+{% endblock %}
