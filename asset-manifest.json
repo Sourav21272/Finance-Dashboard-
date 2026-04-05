@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.css": "/Finance-Dashboard-Main/static/css/main.6bc146bf.css",
-    "main.js": "/Finance-Dashboard-Main/static/js/main.e8c1b155.js",
-    "index.html": "/Finance-Dashboard-Main/index.html",
-    "main.6bc146bf.css.map": "/Finance-Dashboard-Main/static/css/main.6bc146bf.css.map",
-    "main.e8c1b155.js.map": "/Finance-Dashboard-Main/static/js/main.e8c1b155.js.map"
+    "main.css": "/Finance-Dashboard-/static/css/main.6bc146bf.css",
+    "main.js": "/Finance-Dashboard-/static/js/main.e8c1b155.js",
+    "index.html": "/Finance-Dashboard-/index.html",
+    "main.6bc146bf.css.map": "/Finance-Dashboard-/static/css/main.6bc146bf.css.map",
+    "main.e8c1b155.js.map": "/Finance-Dashboard-/static/js/main.e8c1b155.js.map"
   },
   "entrypoints": [
     "static/css/main.6bc146bf.css",
