@@ -1,6 +1,4 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 const COLORS = ["#8884d8", "#82ca9d", "#ffc658", "#ff7f7f"];
@@ -92,20 +90,20 @@ export default function App() {
   return (
     <div className="p-4 grid gap-4">
       <div className="flex gap-2">
-        <Button onClick={() => setRole("viewer")}>Viewer</Button>
-        <Button onClick={() => setRole("admin")}>Admin</Button>
+        <button onClick={() => setRole("viewer")}>Viewer</button>
+        <button onClick={() => setRole("admin")}>Admin</button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card><CardContent>Balance: {summary.balance}</CardContent></Card>
-        <Card><CardContent>Income: {summary.income}</CardContent></Card>
-        <Card><CardContent>Expense: {summary.expense}</CardContent></Card>
+        <div className="card"><div>Balance: {summary.balance}</div></div>
+        <div className="card"><div>Income: {summary.income}</div></div>
+        <div className="card"><div>Expense: {summary.expense}</div></div>
       </div>
 
       {/* Charts */}
       <div className="grid md:grid-cols-2 gap-4">
-        <Card>
-          <CardContent>
+        <div className="card">
+          <div>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={lineData}>
                 <XAxis dataKey="date" />
@@ -114,11 +112,10 @@ export default function App() {
                 <Line type="monotone" dataKey="amount" />
               </LineChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent>
+          </div>
+        </div>
+        <div className="card">
+          <div>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie data={categoryData} dataKey="value" nameKey="name">
@@ -129,17 +126,17 @@ export default function App() {
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Insights */}
-      <Card>
-        <CardContent>
+      <div className="card">
+        <div>
           Highest Category: {highestCategory} <br />
           Avg Expense: {avgExpense}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Transactions */}
       <div>
@@ -157,7 +154,7 @@ export default function App() {
           <option value="amount">Sort by Amount</option>
         </select>
 
-        {role === "admin" && <Button onClick={addTransaction}>Add</Button>}
+        {role === "admin" && <button onClick={addTransaction}>Add</button>}
 
         <div className="overflow-x-auto">
           <table className="w-full border mt-2">
@@ -183,8 +180,8 @@ export default function App() {
                     <td>
                       {role === "admin" && (
                         <>
-                          <Button onClick={() => editTx(t.id)}>Edit</Button>
-                          <Button onClick={() => deleteTx(t.id)}>Delete</Button>
+                          <button onClick={() => editTx(t.id)}>Edit</button>
+                          <button onClick={() => deleteTx(t.id)}>Delete</button>
                         </>
                       )}
                     </td>
